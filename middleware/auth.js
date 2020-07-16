@@ -17,7 +17,7 @@ module.exports = function (req, res, next) {
     const decoded = jwt.verify(token, process.env.JWTSECRET);
     // Mount user if decoded has the user
     req.user = decoded.user;
-    console.log(user);
+    console.log(req.user);
     next();
   } catch (err) {
     // If token is invalid then it catches

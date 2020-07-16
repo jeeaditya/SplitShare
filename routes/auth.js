@@ -49,7 +49,7 @@ router.post(
       if (!isMatch) {
         return res
           .status(400)
-          .json({ msg: 'Username or Password did not match' });
+          .json({ msg: 'Username or Password did not match' });    
       }
 
       // If both matches, send the token
