@@ -2,24 +2,20 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 const { check, validationResult } = require('express-validator');
 require('dotenv').config();
 const User = require('../models/User');
 
 // @route     POST api/users
-// @desc      Regiter a user
+// @desc      Register a user
 // @access    Public
 router.post(
   '/',
   [
     check('name', 'Please add name').not().isEmpty(),
-    check('phone','Please add a valid phone number.')
-    .isNumeric()
-    .isLength({ min: 10, max: 10 }),
-    check(
-      'password',
-      'Please enter a password '
-    ).exists(),
+    check('phone', 'Please add a valid phone number.').isNumeric().isLength({ min: 10, max: 10 }),
+    check('password', 'Please enter a password ').exists(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -57,7 +53,7 @@ router.post(
 
       jwt.sign(
         payload,
-          process.env.JWTSECRET,
+        process.env.JWTSECRET,
         {
           expiresIn: 360000,
         },
@@ -72,5 +68,26 @@ router.post(
     }
   }
 );
+
+// @route     GET api/users
+// @desc      Get matching Users
+// @access    Public
+router.get('/', auth, async (req, res) => {
+  try {
+    const { searchInput } = req.body;
+    console.log(typeof searchInput);
+    console.log(/^\d+$/.test(searchInput));
+    let foundUsers = {};
+    if (/^\d+$/.test(searchInput)) {
+      foundUsers = await User.find({ phone: { $regex: searchInput, $options: 'i' } }, 'name phone');
+    } else {
+      foundUsers = await User.find({ name: { $regex: searchInput, $options: 'i' } }, 'name phone');
+    }
+    console.log(foundUsers);
+    res.json(foundUsers);
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 module.exports = router;
